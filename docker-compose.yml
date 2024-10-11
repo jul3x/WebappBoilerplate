@@ -28,5 +28,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
