@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_USER: testuser
+      DB_PASSWORD: testpassword
+      DB_NAME: testdb
+      DB_PORT: 5432
+      JWT_SECRET: jwtsecret
+      PORT: 8080
+    depends_on:
+      - postgres
+    working_dir: /app
+
+  postgres:
+    image: postgres:bookworm
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
