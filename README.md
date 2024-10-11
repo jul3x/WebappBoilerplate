@@ -55,7 +55,7 @@ docker-compose up --build
 4. Access the application
 
 * Backend: `http://localhost:8080/api/v1/`
-* Frontend: `http://localhost:8081/`
+* Frontend: `http://localhost:80/`
 
 
 
