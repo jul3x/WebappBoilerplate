@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jul3x/webapp-boilerplate/models"
-	"github.com/jul3x/webapp-boilerplate/tests"
+	"github.com/jul3x/WebappBoilerplate/models"
+	"github.com/jul3x/WebappBoilerplate/tests"
 )
 
 func TestRegister_ValidUser(t *testing.T) {

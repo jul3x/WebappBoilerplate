@@ -1,4 +1,4 @@
-module github.com/jul3x/webapp-boilerplate
+module github.com/jul3x/WebappBoilerplate
 
 go 1.19
 

@@ -10,8 +10,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/jul3x/webapp-boilerplate/models"
-	"github.com/jul3x/webapp-boilerplate/routes"
+	"github.com/jul3x/WebappBoilerplate/models"
+	"github.com/jul3x/WebappBoilerplate/routes"
 )
 
 var db *gorm.DB

@@ -2,7 +2,7 @@ package tests
 
 import (
     "testing"
-    "github.com/jul3x/webapp-boilerplate/models"
+    "github.com/jul3x/WebappBoilerplate/models"
     "gorm.io/driver/sqlite"
     "gorm.io/gorm"
 )

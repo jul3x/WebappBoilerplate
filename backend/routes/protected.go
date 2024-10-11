@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/jul3x/webapp-boilerplate/handlers"
-	"github.com/jul3x/webapp-boilerplate/middlewares"
+	"github.com/jul3x/WebappBoilerplate/handlers"
+	"github.com/jul3x/WebappBoilerplate/middlewares"
 	"gorm.io/gorm"
 )
 

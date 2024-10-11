@@ -3,7 +3,7 @@ package routes
 import (
     "github.com/gorilla/mux"
     "gorm.io/gorm"
-    "github.com/jul3x/webapp-boilerplate/handlers"
+    "github.com/jul3x/WebappBoilerplate/handlers"
 )
 
 func RegisterAuthRoutes(router *mux.Router, db *gorm.DB) {

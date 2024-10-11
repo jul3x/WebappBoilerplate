@@ -6,8 +6,8 @@ import (
     "testing"
 
     "github.com/golang-jwt/jwt/v4"
-    "github.com/jul3x/webapp-boilerplate/middlewares"
-    "github.com/jul3x/webapp-boilerplate/tests"
+    "github.com/jul3x/WebappBoilerplate/middlewares"
+    "github.com/jul3x/WebappBoilerplate/tests"
     "os"
     "time"
 )
