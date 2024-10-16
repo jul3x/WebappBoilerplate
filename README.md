@@ -44,6 +44,9 @@ DB_PORT=5432
 PORT=8080
 JWT_SECRET=yourjwtsecret
 JWT_SECRET=your_jwt_secret
+ADMIN_USER=admin@admin
+ADMIN_PASS=pass
+
 ```
 
 3. Start the application
@@ -55,7 +58,8 @@ docker-compose up --build
 4. Access the application
 
 * Backend: `http://localhost:8080/api/v1/`
-* Frontend: `http://localhost:80/`
+* Frontend: `http://localhost:8081/`
+
 
 ### Tests
 

@@ -13,8 +13,9 @@ import (
 )
 
 type AuthResponse struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
 	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 func Register(db *gorm.DB) gin.HandlerFunc {
@@ -37,6 +38,7 @@ func Register(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		user.Password = string(hashedPassword)
+		user.Role = models.Role("normal")
 
 		if result := db.Create(&user); result.Error != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": result.Error.Error()})
@@ -80,6 +82,10 @@ func Login(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, AuthResponse{Token: tokenString, Username: foundUser.Username})
+		c.JSON(http.StatusOK, AuthResponse{
+			Token:    tokenString,
+			Username: foundUser.Username,
+			Role:     string(foundUser.Role),
+		})
 	}
 }

@@ -3,6 +3,7 @@ import RegisterComponent from "../components/RegisterComponent.vue";
 import LoginComponent from "../components/LoginComponent.vue";
 import ProtectedComponent from "../components/ProtectedComponent.vue";
 import MainComponent from "../components/MainComponent.vue";
+import AdminComponent from "../components/AdminComponent.vue";
 
 const routes = [
   {
@@ -26,6 +27,12 @@ const routes = [
     component: ProtectedComponent,
     meta: { requiresAuth: true },
   },
+  {
+    path: "/admin",
+    name: "Admin",
+    component: AdminComponent,
+    meta: { requiresAdmin: true },
+  },
 ];
 
 const router = createRouter({
@@ -34,8 +41,10 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !localStorage.getItem("token")) {
+  if (to.meta.requiresAuth && !localStorage.getItem("role")) {
     next({ name: "Login" });
+  } else if (to.meta.requiresAdmin && localStorage.getItem("role") !== "admin") {
+    next({ name: "Main" });
   } else {
     next();
   }

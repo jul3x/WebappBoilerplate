@@ -13,6 +13,8 @@ services:
       DB_PORT: 5432
       JWT_SECRET: jwtsecret
       PORT: 8080
+      ADMIN_USER: admin@admin
+      ADMIN_PASS: pass
     volumes:
       - ./config.yaml:/app/config.yaml
     depends_on:

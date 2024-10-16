@@ -45,8 +45,10 @@ const login = async () => {
     );
     store.token = response.data.token;
     store.username = response.data.username;
+    store.role = response.data.role;
     localStorage.setItem("token", response.data.token);
     localStorage.setItem("username", response.data.username);
+    localStorage.setItem("role", response.data.role);
     alert("Login successful!");
     router.push("/");
   } catch (err: any) {

@@ -29,6 +29,14 @@
                 >Protected</router-link
               >
             </li>
+            <li class="nav-item" v-if="role === 'admin'">
+              <router-link
+                class="nav-link"
+                to="/admin"
+                active-class="active"
+                >Admin</router-link
+              >
+            </li>
             <li class="nav-item" v-if="!username">
               <router-link class="nav-link" to="/register" active-class="active"
                 >Register</router-link
@@ -73,17 +81,21 @@ import { useRouter } from "vue-router";
 
 const username = ref(store.username || localStorage.getItem("username"));
 const token = ref(store.token || localStorage.getItem("token") || "");
+const role = ref(store.role || localStorage.getItem("role") || "");
 
 store.username = username;
 store.token = token;
+store.role = role;
 const router = useRouter();
 
 async function logout() {
   try {
     store.username = null;
     store.token = null;
+    store.role = null;
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("role");
     router.push("/login");
     alert("Successfully logged out!");
   } catch (error) {
