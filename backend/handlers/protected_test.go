@@ -1,60 +1,67 @@
 package handlers
 
 import (
-    "net/http"
-    "net/http/httptest"
-    "testing"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
 
-    "github.com/golang-jwt/jwt/v4"
-    "github.com/jul3x/WebappBoilerplate/middlewares"
-    "github.com/jul3x/WebappBoilerplate/tests"
-    "os"
-    "time"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/jul3x/WebappBoilerplate/middlewares"
+	"github.com/jul3x/WebappBoilerplate/tests"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestProtected_ValidJWT(t *testing.T) {
-    db := tests.InitializeTestDB(t)
+// TestRegisterProtectedRoutes tests the registration of protected routes.
+func TestRegisterProtectedRoutes(t *testing.T) {
+	// Initialize test database and router
+	db := tests.InitializeTestDB(t)
+	router := gin.New()
 
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "user_id": 1,
-        "exp":     time.Now().Add(time.Hour * 1).Unix(),
-    })
-    tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	protected := router.Group("/api/v1/protected")
+	protected.Use(middleware.JwtMiddleware())
+	{
+		protected.GET("/data", GetProtectedData(db))
+	}
 
-    req, err := http.NewRequest("GET", "/api/v1/protected/data", nil)
-    if err != nil {
-        t.Fatalf("Could not create request: %v", err)
-    }
-    req.Header.Set("Authorization", "Bearer "+tokenString)
+	// Create a valid JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": 1,
+		"exp":     time.Now().Add(time.Hour).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		t.Fatalf("Could not sign token: %v", err)
+	}
 
-    rr := httptest.NewRecorder()
-    handler := middlewares.JwtMiddleware(GetProtectedData(db))
-    handler.ServeHTTP(rr, req)
+	// Test valid JWT
+	req, err := http.NewRequest(http.MethodGet, "/api/v1/protected/data", nil)
+	if err != nil {
+		t.Fatalf("Could not create request: %v", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+tokenString)
 
-    if status := rr.Code; status != http.StatusOK {
-        t.Errorf("Expected status code %v, got %v", http.StatusOK, status)
-    }
-}
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
 
-func TestProtected_InvalidJWT(t *testing.T) {
-    db := tests.InitializeTestDB(t)
+	// Check response for valid JWT
+	assert.Equal(t, http.StatusOK, rr.Code)
 
-    req, err := http.NewRequest("GET", "/api/v1/protected/data", nil)
-    if err != nil {
-        t.Fatalf("Could not create request: %v", err)
-    }
-    req.Header.Set("Authorization", "Bearer invalidtoken")
+	// Test invalid JWT
+	req, err = http.NewRequest(http.MethodGet, "/api/v1/protected/data", nil)
+	if err != nil {
+		t.Fatalf("Could not create request: %v", err)
+	}
+	req.Header.Set("Authorization", "Bearer invalidtoken")
 
-    rr := httptest.NewRecorder()
-    handler := middlewares.JwtMiddleware(GetProtectedData(db))
-    handler.ServeHTTP(rr, req)
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
 
-    if status := rr.Code; status != http.StatusUnauthorized {
-        t.Errorf("Expected status code %v, got %v", http.StatusUnauthorized, status)
-    }
+	// Check response for invalid JWT
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
-    expected := "Invalid token\n"
-    if rr.Body.String() != expected {
-        t.Errorf("Expected error message '%v', got '%v'", expected, rr.Body.String())
-    }
+	expected := "{\"error\":\"Invalid token\"}"
+	assert.Equal(t, expected, rr.Body.String())
 }

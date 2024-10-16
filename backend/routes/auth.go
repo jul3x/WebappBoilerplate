@@ -1,12 +1,16 @@
 package routes
 
 import (
-    "github.com/gorilla/mux"
-    "gorm.io/gorm"
-    "github.com/jul3x/WebappBoilerplate/handlers"
+        "github.com/gin-gonic/gin"
+        "github.com/jul3x/WebappBoilerplate/handlers"
+        "gorm.io/gorm"
 )
 
-func RegisterAuthRoutes(router *mux.Router, db *gorm.DB) {
-    router.HandleFunc("/api/v1/auth/register", handlers.Register(db)).Methods("POST")
-    router.HandleFunc("/api/v1/auth/login", handlers.Login(db)).Methods("POST")
+// RegisterAuthRoutes sets up the authentication routes
+func RegisterAuthRoutes(router *gin.Engine, db *gorm.DB) {
+        // Register route
+        router.POST("/api/v1/auth/register", handlers.Register(db))
+
+        // Login route
+        router.POST("/api/v1/auth/login", handlers.Login(db))
 }

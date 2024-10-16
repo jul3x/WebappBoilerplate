@@ -1,0 +1,4 @@
+server:
+  name: "WebApp Template"
+  port: 8080
+  host: "localhost"

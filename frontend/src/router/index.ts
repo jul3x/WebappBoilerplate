@@ -2,8 +2,14 @@ import { createRouter, createWebHistory } from "vue-router";
 import RegisterComponent from "../components/RegisterComponent.vue";
 import LoginComponent from "../components/LoginComponent.vue";
 import ProtectedComponent from "../components/ProtectedComponent.vue";
+import MainComponent from "../components/MainComponent.vue";
 
 const routes = [
+  {
+    path: "/",
+    name: "Main",
+    component: MainComponent,
+  },
   {
     path: "/register",
     name: "Register",

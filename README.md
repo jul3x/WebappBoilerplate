@@ -57,5 +57,13 @@ docker-compose up --build
 * Backend: `http://localhost:8080/api/v1/`
 * Frontend: `http://localhost:80/`
 
+### Tests
 
+Just run `go test ./... -v` from backend directory. Firstly you may need to install go dependencies and libraries via `go mod download`.
 
+### Development
+
+You may want to develop on the host machine just to make things faster and easier:
+
+* `npm run serve --live` - live reload for frontend.
+* `go build -o main . && ./main` - as far as I know there is no native way to do live reload but I think it is not necessary. One may use some library for this (air?)

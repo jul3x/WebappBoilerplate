@@ -1,43 +1,54 @@
-package middlewares
+package middleware
 
 import (
-	"context"
-	"net/http"
-	"strings"
+    "net/http"
+    "os"
+    "strings"
 
-	"github.com/golang-jwt/jwt/v4"
-	"os"
+    "github.com/gin-gonic/gin"
+    "github.com/golang-jwt/jwt/v4"
 )
 
-func JwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenHeader := r.Header.Get("Authorization")
-		if tokenHeader == "" {
-			http.Error(w, "Missing authorization token", http.StatusUnauthorized)
-			return
-		}
+func JwtMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        tokenHeader := c.GetHeader("Authorization")
+        if tokenHeader == "" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing authorization token"})
+            c.Abort()
+            return
+        }
 
-		// Bearer token format: "Bearer <token>"
-		tokenString := strings.Split(tokenHeader, " ")[1]
+        tokenParts := strings.Split(tokenHeader, " ")
+        if len(tokenParts) != 2 {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
+            c.Abort()
+            return
+        }
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, http.ErrAbortHandler
-			}
-			return []byte(os.Getenv("JWT_SECRET")), nil
-		})
+        tokenString := tokenParts[1]
 
-		if err != nil || !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-			return
-		}
+        token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+            if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+                return nil, http.ErrAbortHandler
+            }
+            return []byte(os.Getenv("JWT_SECRET")), nil
+        })
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			userID := claims["user_id"]
-			ctx := context.WithValue(r.Context(), "user_id", userID)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		} else {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-		}
-	}
+        if err != nil || !token.Valid {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+            c.Abort()
+            return
+        }
+
+        if claims, ok := token.Claims.(jwt.MapClaims); ok {
+            userID := claims["user_id"]
+            c.Set("user_id", userID) // Set user_id in Gin context
+        } else {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+            c.Abort()
+            return
+        }
+
+        c.Next()
+    }
 }

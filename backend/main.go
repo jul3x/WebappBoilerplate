@@ -5,11 +5,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"github.com/jul3x/WebappBoilerplate/config"
 	"github.com/jul3x/WebappBoilerplate/models"
 	"github.com/jul3x/WebappBoilerplate/routes"
 )
@@ -21,6 +24,13 @@ func init() {
 }
 
 func main() {
+	configPath := "./"
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+		os.Exit(1)
+	}
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
@@ -36,7 +46,20 @@ func main() {
 
 	db.AutoMigrate(&models.User{})
 
-	router := mux.NewRouter()
+	router := gin.Default()
+
+	// Add CORS middleware to allow requests from the frontend
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			fmt.Sprintf("https://%s:%d", cfg.Server.Host, cfg.Server.Port),
+			fmt.Sprintf("http://%s:%d", cfg.Server.Host, cfg.Server.Port)},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	routes.RegisterAuthRoutes(router, db)
 	routes.RegisterProtectedRoutes(router, db)
 

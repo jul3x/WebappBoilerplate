@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jul3x/WebappBoilerplate/models"
 	"golang.org/x/crypto/bcrypt"
@@ -14,54 +14,58 @@ import (
 
 type AuthResponse struct {
 	Token string `json:"token"`
+	Username string `json:"username"`
 }
 
-func Register(db *gorm.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func Register(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		var user models.User
-		json.NewDecoder(r.Body).Decode(&user)
+		if err := c.ShouldBindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
 
-                var existingUser models.User
-                db.Where("email = ?", user.Email).First(&existingUser)
-                if existingUser.ID != 0 {
-                        http.Error(w, "Email already in use", http.StatusConflict)
-                        return
-                }
+		var existingUser models.User
+		if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "Email already in use"})
+			return
+		}
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
-			http.Error(w, "Server error", http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Server error"})
 			return
 		}
 		user.Password = string(hashedPassword)
 
 		if result := db.Create(&user); result.Error != nil {
-			http.Error(w, result.Error.Error(), http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": result.Error.Error()})
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
-                user.Password = "<hidden>"
-		json.NewEncoder(w).Encode(user)
+		user.Password = "<hidden>"
+		c.JSON(http.StatusCreated, user)
 	}
 }
 
-func Login(db *gorm.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func Login(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		var user models.User
 		var foundUser models.User
 
-		json.NewDecoder(r.Body).Decode(&user)
+		if err := c.ShouldBindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
 
-		db.Where("email = ?", user.Email).First(&foundUser)
-		if foundUser.ID == 0 {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		if err := db.Where("email = ?", user.Email).First(&foundUser).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
 		err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(user.Password))
 		if err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
@@ -72,11 +76,10 @@ func Login(db *gorm.DB) http.HandlerFunc {
 
 		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 		if err != nil {
-			http.Error(w, "Error generating token", http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(AuthResponse{Token: tokenString})
+		c.JSON(http.StatusOK, AuthResponse{Token: tokenString, Username: foundUser.Username})
 	}
 }

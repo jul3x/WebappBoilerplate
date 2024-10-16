@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <h2>Protected Data</h2>
-    <p>This is a protected route. Only accessible when logged in.</p>
+    <h2>Hello!</h2>
+    <p>This is main page. Accessible for everyone.</p>
   </div>
 </template>
 

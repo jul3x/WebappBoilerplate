@@ -21,41 +21,38 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script setup lang="ts">
+import { ref } from "vue";
 import axios from "axios";
+import { store } from "../store/index.ts";
+import { useRouter } from "vue-router";
 
-export default defineComponent({
-  setup() {
-    const email = ref("");
-    const password = ref("");
-    const error = ref<string | null>(null); // Declare error as a string or null
+const email = ref("");
+const password = ref("");
+const error = ref<string | null>(null);
 
-    const login = async () => {
-      error.value = null; // Reset error
-      try {
-        const response = await axios.post(
-          "http://localhost:8080/api/v1/auth/login",
-          {
-            email: email.value,
-            password: password.value,
-          }
-        );
-        localStorage.setItem("token", response.data.token); // Store the JWT token
-        alert("Login successful!");
-      } catch (err: any) {
-        error.value = err.response?.data || "Login failed."; // Use optional chaining for safety
+const router = useRouter();
+
+const login = async () => {
+  error.value = null;
+  try {
+    const response = await axios.post(
+      "http://localhost:8080/api/v1/auth/login",
+      {
+        email: email.value,
+        password: password.value,
       }
-    };
-
-    return {
-      email,
-      password,
-      error,
-      login,
-    };
-  },
-});
+    );
+    store.token = response.data.token;
+    store.username = response.data.username;
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("username", response.data.username);
+    alert("Login successful!");
+    router.push("/");
+  } catch (err: any) {
+    error.value = err.response?.data || "Login failed.";
+  }
+};
 </script>
 
 <style scoped>
